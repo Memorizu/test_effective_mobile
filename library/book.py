@@ -3,8 +3,7 @@ from enum import Enum
 import json
 import os
 
-
-DATA_FILE = "library_data.json"
+from config import settings
 
 
 class BookEnum(Enum):
@@ -19,24 +18,24 @@ class Book:
         self.title = title
         self.author = author
         self.year = year
-        self.status = BookEnum(default=BookEnum.in_stock)
+        self.status = BookEnum(BookEnum.in_stock)
 
     @staticmethod
     def generate_id() -> int:
-        if not os.path.exists(DATA_FILE):
+        if not os.path.exists(settings.DATA_FILE):
             return 1
-        with open(DATA_FILE, "r") as file:
+        with open(settings.DATA_FILE, "r") as file:
             books = json.load(file)
             if not books:
                 return 1
             last_book = books[-1]
             return last_book["id"] + 1
 
-    def to_dict(self) -> dict[str[int | str]]:
+    def to_dict(self) -> dict:
         return {
             "id": self.id,
             "title": self.title,
             "author": self.author,
             "year": self.year,
-            "status": self.status,
+            "status": self.status.value,
         }
