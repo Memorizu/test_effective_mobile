@@ -1,11 +1,11 @@
-from database import DataManager
+from library.library import Library
 from library.book import Book
 
 
 class Librarian:
 
-    def __init__(self, operator: DataManager):
-        self.operator = operator
+    def __init__(self, library: Library):
+        self.library = library
         self.command_menu = {
             "1": ("Просмотреть список книг", self.display_books),
             "2": ("Добавить книгу", self.add_book),
@@ -24,7 +24,7 @@ class Librarian:
             print(f"{key}: {value[0]}\n")
 
     def display_books(self) -> None:
-        books = self.operator.load_data()
+        books = self.library.get_items()
         if not books:
             print("Библиотека пуста.")
         for book in books:
@@ -39,39 +39,33 @@ class Librarian:
             )
 
     def add_book(self) -> None:
+        try:
+            title = input("Введите название книги: ")
+            author = input("Введите автора книги: ")
+            year = int(input("Введите год издания книги: \n"))
 
-        title = input("Введите название книги: ")
-        author = input("Введите автора книги: ")
-        year = int(input("Введите год издания книги: \n"))
-
-        books = self.operator.load_data()
-        new_book = Book(title, author, year)
-        books.append(new_book.to_dict())
-        self.operator.save_data(books)
-        print(f"Книга '{title}' добавлена с ID {new_book.id}.\n")
+            book = Book(title=title, author=author, year=year)
+            self.library.add_item(book)
+            print(f"Книга '{title}' добавлена.\n")
+        except ValueError:
+            print("Не верный формат данных")
 
     def delete_book(self) -> None:
-        books = self.operator.load_data()
-        book_id = int(input("Введите номер книги: "))
-        for book in books:
-            if book["id"] == book_id:
-                books.remove(book)
-                self.operator.save_data(books)
-                break
-            else:
-                print(f"Книга с ID {book_id} не найдена\n")
-                return
-        print(f"Книга с ID {book_id} удалена.\n")
+        try:
+            book_id = int(input("Введите номер книги: "))
+            self.library.delete_item(book_id)
+            print(f"Книга с ID {book_id} удалена.\n")
+        except ValueError:
+            print("Не верный формат данных")
 
     # Функция для поиска книг
     def search_book(self):
         query = input("Введите поисковый запрос: ")
-        books = self.operator.load_data()
-        find_books = [book for book in books if query.lower() in str(book).lower()]
-        if not find_books:
+        books = self.library.get_books_by_query(query=query)
+        if not books:
             print("Книги не найдены")
         else:
-            for book in find_books:
+            for book in books:
                 print(
                     f"""
                     Найдены книги:\n
@@ -84,13 +78,16 @@ class Librarian:
                 )
 
     def book_issuance(self) -> None:
-        books = self.operator.load_data()
-        book_id = int(input("Введите номер книги: "))
-        for book in books:
-            if book["id"] == book_id:
-                print(f"{book['title']}\n{book['status']}")
-                status = input("Введите новый статус (в наличии/выдана): ")
-                book["status"] = status
-                break
-        self.operator.save_data(books)
-        print(f"Статус книги с ID {book_id} изменен на '{status}'.")
+        try:
+            book_id = int(input("Введите номер книги: "))
+        except ValueError:
+            print("Необходимо ввести номер книги.")
+            return
+
+        book = self.library.get_book(item_id=book_id)
+        print(f"{book['title']}\n{book['status']}")
+
+        new_status = input("Введите новый статус (в наличии/выдана): ")
+        book["status"] = new_status
+        self.library.save_item(book)
+        print(f"Статус книги {book['title']} с ID {book_id} изменен на '{new_status}'.")

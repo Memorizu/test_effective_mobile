@@ -4,6 +4,7 @@ import json
 import os
 
 from config import settings
+from library.library_item import LibraryItem
 
 
 class BookEnum(Enum):
@@ -12,7 +13,8 @@ class BookEnum(Enum):
 
 
 @dataclass
-class Book:
+class Book(LibraryItem):
+
     def __init__(self, title: str, author: str, year: int):
         self.id = self.generate_id()
         self.title = title

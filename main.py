@@ -1,10 +1,10 @@
 from library.librarian import Librarian
-from database import json_manager
+from library import library
 
 
 def main():
 
-    lib = Librarian(operator=json_manager)
+    lib = Librarian(library=library)
     lib.print_command_menu()
 
     while True:
